@@ -9,7 +9,6 @@ cloudscraper
 pycryptodome
 pytz
 motor
-pyrofork
 PyJWT
 aiogram
 beautifulsoup4
@@ -18,7 +17,7 @@ python-telegram-bot==20.6
 tqdm
 colorama
 termcolor
-dotenv
+python-dotenv
 Flask
 gunicorn
 Jinja2
