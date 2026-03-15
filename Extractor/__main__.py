@@ -3,6 +3,7 @@ import importlib
 import signal
 from pyrogram import idle
 from Extractor.modules import ALL_MODULES
+import Extractor
 
 loop = asyncio.get_event_loop()
 
@@ -11,14 +12,25 @@ should_exit = asyncio.Event()
 
 def shutdown():
     print("Shutting down gracefully...")
-    should_exit.set()  # triggers exit from idle
+    should_exit.set()
 
 signal.signal(signal.SIGTERM, lambda s, f: loop.create_task(should_exit.set()))
-signal.signal(signal.SIGINT, lambda s, f: loop.create_task(should_exit.set()))
+signal.signal(signal.SIGINT,  lambda s, f: loop.create_task(should_exit.set()))
 
 async def sumit_boot():
-    for all_module in ALL_MODULES:
-        importlib.import_module("Extractor.modules." + all_module)
+    # Start the bot and fetch info HERE (not at import time)
+    await Extractor.app.start()
+    getme = await Extractor.app.get_me()
+    Extractor.BOT_ID       = getme.id
+    Extractor.BOT_USERNAME = getme.username
+    if getme.last_name:
+        Extractor.BOT_NAME = getme.first_name + " " + getme.last_name
+    else:
+        Extractor.BOT_NAME = getme.first_name
+
+    # Load all modules after bot is ready
+    for module in ALL_MODULES:
+        importlib.import_module("Extractor.modules." + module)
 
     print("» ʙᴏᴛ ᴅᴇᴘʟᴏʏ sᴜᴄᴄᴇssғᴜʟʟʏ ✨ 🎉")
     await idle()  # keeps the bot alive
@@ -31,7 +43,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Interrupted by user.")
     finally:
-        # Cancel pending tasks to avoid "destroyed but pending" error
         pending = asyncio.all_tasks(loop)
         for task in pending:
             task.cancel()
